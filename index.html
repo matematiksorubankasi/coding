@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>webfurkan - animation</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #050505;
+  cursor: none;
+}
+
+#particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* ANA PARÇACIK */
+.particle {
+  position: absolute;
+
+  width: 70px;
+  height: 70px;
+
+  background-image: url("images (2).jpg");
+  background-size: cover;
+  background-position: center;
+
+  border-radius: 50%;
+
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+
+  animation: particleAnim 1.4s cubic-bezier(.22,1,.36,1) forwards;
+
+  box-shadow:
+    0 0 20px rgba(255,255,255,.25),
+    0 0 50px rgba(255,255,255,.08);
+}
+
+/* PARÇACIK ANİMASYONU */
+@keyframes particleAnim {
+
+  0% {
+    transform:
+      translate(-50%, -50%)
+      scale(0)
+      rotate(0deg);
+
+    opacity: 0;
+  }
+
+  15% {
+    transform:
+      translate(-50%, -50%)
+      scale(1.1)
+      rotate(30deg);
+
+    opacity: 1;
+  }
+
+  45% {
+    transform:
+      translate(
+        calc(-50% + var(--moveX)),
+        calc(-50% + var(--moveY))
+      )
+      scale(.75)
+      rotate(150deg);
+
+    opacity: .8;
+  }
+
+  100% {
+    transform:
+      translate(
+        calc(-50% + var(--moveX)),
+        calc(-50% + var(--moveY))
+      )
+      scale(0)
+      rotate(360deg);
+
+    opacity: 0;
+  }
+}
+
+
+/* MOUSE HALKASI */
+.cursor {
+  position: fixed;
+
+  width: 25px;
+  height: 25px;
+
+  border: 1px solid rgba(255,255,255,.7);
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  transform:
+    translate(-50%, -50%);
+
+  transition:
+    width .2s ease,
+    height .2s ease,
+    background .2s ease;
+
+  z-index: 9999;
+
+  mix-blend-mode: difference;
+}
+
+
+/* ORTA NOKTA */
+.cursor::after {
+  content: "";
+
+  position: absolute;
+
+  width: 4px;
+  height: 4px;
+
+  background: white;
+
+  border-radius: 50%;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, -50%);
+}
+
+
+/* EKRAN PARILTISI */
+.flash {
+  position: fixed;
+
+  width: 150px;
+  height: 150px;
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(255,255,255,.12),
+    transparent 70%
+  );
+
+  transform: translate(-50%, -50%) scale(0);
+
+  pointer-events: none;
+
+  animation: flashAnim .7s ease-out forwards;
+}
+
+@keyframes flashAnim {
+
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="particles"></div>
+
+<div class="cursor"></div>
+
+<script>
+
+const particles = document.getElementById("particles");
+const cursor = document.querySelector(".cursor");
+
+let lastX = 0;
+let lastY = 0;
+
+let angle = 0;
+
+
+/* =========================
+   MOUSE
+========================= */
+
+document.addEventListener("mousemove", (e) => {
+
+  const x = e.clientX;
+  const y = e.clientY;
+
+  /* ÖZEL CURSOR */
+  cursor.style.left = x + "px";
+  cursor.style.top = y + "px";
+
+
+  /* MOUSE HIZI */
+  const dx = x - lastX;
+  const dy = y - lastY;
+
+  const distance = Math.sqrt(
+    dx * dx + dy * dy
+  );
+
+
+  /* YETERLİ HAREKET VARSA PARÇACIK */
+  if (distance > 5) {
+
+    createParticle(
+      x,
+      y,
+      dx,
+      dy
+    );
+
+  }
+
+
+  lastX = x;
+  lastY = y;
+
+});
+
+
+/* =========================
+   PARÇACIK OLUŞTUR
+========================= */
+
+function createParticle(
+  x,
+  y,
+  dx,
+  dy
+) {
+
+  const p = document.createElement("div");
+
+  p.className = "particle";
+
+
+  /* RASTGELE BOYUT */
+
+  const size =
+    Math.random() * 45 + 35;
+
+  p.style.width = size + "px";
+  p.style.height = size + "px";
+
+
+  /* MOUSE HAREKET YÖNÜ */
+
+  const moveX =
+    (Math.random() - .5) * 180 - dx * 2;
+
+  const moveY =
+    (Math.random() - .5) * 180 - dy * 2;
+
+
+  p.style.setProperty(
+    "--moveX",
+    moveX + "px"
+  );
+
+  p.style.setProperty(
+    "--moveY",
+    moveY + "px"
+  );
+
+
+  /* BAŞLANGIÇ NOKTASI */
+
+  p.style.left = x + "px";
+  p.style.top = y + "px";
+
+
+  /* RASTGELE DÖNÜŞ */
+
+  angle +=
+    Math.random() * 30 + 10;
+
+  p.style.rotate =
+    angle + "deg";
+
+
+  particles.appendChild(p);
+
+
+  /* ANİMASYON BİTİNCE SİL */
+
+  p.addEventListener(
+    "animationend",
+    () => {
+      p.remove();
+    }
+  );
+
+}
+
+
+/* =========================
+   TIKLAMA EFEKTİ
+========================= */
+
+document.addEventListener(
+  "click",
+  (e) => {
+
+    const flash =
+      document.createElement("div");
+
+    flash.className = "flash";
+
+    flash.style.left =
+      e.clientX + "px";
+
+    flash.style.top =
+      e.clientY + "px";
+
+    particles.appendChild(flash);
+
+
+    /* TIKLAMADA 8 PARÇACIK */
+
+    for (
+      let i = 0;
+      i < 8;
+      i++
+    ) {
+
+      createParticle(
+        e.clientX,
+        e.clientY,
+        (Math.random() - .5) * 20,
+        (Math.random() - .5) * 20
+      );
+
+    }
+
+
+    flash.addEventListener(
+      "animationend",
+      () => {
+        flash.remove();
+      }
+    );
+
+  }
+);
+
+</script>
+
+</body>
+</html>
